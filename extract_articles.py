@@ -6,7 +6,7 @@ def scraping_Title_and_Text_to_File():
 
     filename_List = []
     # Load the Excel file
-    input_file = r"C:\Users\navin\OneDrive\Desktop\WorkTree\sample_table\Entevyuv 11.0\In.xlsx"
+    input_file = r"C:\Users\navin\OneDrive\Desktop\WorkTree\sample_table\Entevyuv 11.0\Input.xlsx"
     df = pd.read_excel(input_file)
 
     # Loop through each row in the DataFrame

@@ -11,7 +11,7 @@ from nltk.corpus import stopwords
 
 def output_file_write(input_file, output_dict):
     # Load the existing Excel file
-    output_file = r"C:\Users\navin\OneDrive\Desktop\WorkTree\sample_table\Entevyuv 11.0\Out.xlsx"
+    output_file = r"C:\Users\navin\OneDrive\Desktop\WorkTree\sample_table\Entevyuv 11.0\Output Data Structure.xlsx"
     df = pd.read_excel(output_file)
 
     # Find the row with URL_ID
@@ -39,18 +39,14 @@ def count_syllables(word):
     word = word.lower()
     if word.endswith(('es', 'ed')):
         word = word[:-2]  # Remove 'es' or 'ed'
-    count = 0
-    vowels = "aeiouy"
-    if word[0] in vowels:
-        count += 1
-    for index in range(1, len(word)):
-        if word[index] in vowels and word[index - 1] not in vowels:
-            count += 1
-    if word.endswith("e"):
-        count -= 1
-    if count == 0:
-        count += 1
-    return count
+    vowels = 'aeiou'
+    count_syl = 0
+    prev_char = None
+    for char in word:
+        if char in vowels and (prev_char is None or prev_char not in vowels):
+            count_syl += 1
+        prev_char = char
+    return max(1, count_syl) 
 
 def read_docx(file_path):
     doc = docx.Document(file_path)
