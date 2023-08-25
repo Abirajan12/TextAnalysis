@@ -6,8 +6,8 @@ import docx
 import re
 import string
 from nltk.corpus import stopwords
-nltk.download('stopwords')
-nltk.download('punkt')
+#nltk.download('stopwords')
+#nltk.download('punkt')
 
 def output_file_write(input_file, output_dict):
     # Load the existing Excel file
@@ -28,11 +28,29 @@ def output_file_write(input_file, output_dict):
     df.loc[row_index,'AVG NUMBER OF WORDS PER SENTENCE'] = output_dict['average_words_per_sentence']
     df.loc[row_index,'COMPLEX WORD COUNT'] = output_dict['complex_word_count']
     df.loc[row_index,'WORD COUNT'] = output_dict['cleaned_word_count']
+    df.loc[row_index,'SYLLABLE PER WORD'] = output_dict['average_syllables_per_word']
+    df.loc[row_index,'PERSONAL PRONOUNS'] = output_dict['personal_pronoun_count']
+    df.loc[row_index,'AVG WORD LENGTH'] = output_dict['average_word_length']
     
     # Save the updated DataFrame back to the Excel file
     df.to_excel(output_file, index=False)
 
-
+def count_syllables(word):
+    word = word.lower()
+    if word.endswith(('es', 'ed')):
+        word = word[:-2]  # Remove 'es' or 'ed'
+    count = 0
+    vowels = "aeiouy"
+    if word[0] in vowels:
+        count += 1
+    for index in range(1, len(word)):
+        if word[index] in vowels and word[index - 1] not in vowels:
+            count += 1
+    if word.endswith("e"):
+        count -= 1
+    if count == 0:
+        count += 1
+    return count
 
 def read_docx(file_path):
     doc = docx.Document(file_path)
@@ -99,12 +117,22 @@ def readability_analysis(input_file):
     total_sentences = len(sentences)
     average_sentence_length = average_words_per_sentence  = total_words / total_sentences
 
+    # Find all matches of personal pronouns in the text
+    personal_pronouns = ["I", "we", "my", "ours", "us"]
+    # Create a regular expression pattern for the personal pronouns
+    pronoun_pattern = r'\b(?:' + '|'.join(re.escape(word) for word in personal_pronouns) + r')\b'
+    matches = re.findall(pronoun_pattern, article_text, flags=re.IGNORECASE)
+    personal_pronoun_count = len(matches)
+
     
     # Calculate percentage of complex words (words with more than 2 syllables)
     words = re.findall(r'\b\w+\b', article_text)
-    complex_words = [word for word in words if len(word) > 2]
-    complex_word_count = len(complex_words)
-    percentage_complex_words = (len(complex_words) / len(words)) * 100
+
+    # Calulating AVG WORD LENGTH
+    total_characters = sum(len(word) for word in words)
+    total_words = len(words)
+    average_word_length = total_characters / total_words
+
 
     # Calculating cleaned word count
     # Remove punctuation and convert to lowercase
@@ -116,15 +144,23 @@ def readability_analysis(input_file):
     cleaned_words = [word for word in words if word not in stop_words]
     
     cleaned_word_count = len(cleaned_words)
+
+    complex_words = [word for word in cleaned_words if count_syllables(word) > 2]
+    complex_word_count = len(complex_words)
+    percentage_complex_words = (complex_word_count / cleaned_word_count) * 100
+
+    syllable_counts = [count_syllables(word) for word in cleaned_words]
+    total_syllables  = sum(syllable_counts)
+    average_syllables_per_word  = total_syllables /cleaned_word_count
     
     # Calculate Gunning Fog Index
     fog_index = 0.4 * (average_sentence_length + percentage_complex_words)
 
-    return average_sentence_length, percentage_complex_words, fog_index, average_words_per_sentence, complex_word_count, cleaned_word_count
+    return average_sentence_length, percentage_complex_words, fog_index, average_words_per_sentence, complex_word_count, cleaned_word_count, average_syllables_per_word, personal_pronoun_count, average_word_length
 
 
 output_dict = {}
 output_dict['positive_score'], output_dict['negative_score'], output_dict['polarity_score'], output_dict['subjectivity_score'] = sentiment_analysis('37.txt')
-output_dict['average_sentence_length'], output_dict['percentage_complex_words'], output_dict['fog_index'], output_dict['average_words_per_sentence'], output_dict['complex_word_count'], output_dict['cleaned_word_count'] = readability_analysis('37.txt')
+output_dict['average_sentence_length'], output_dict['percentage_complex_words'], output_dict['fog_index'], output_dict['average_words_per_sentence'], output_dict['complex_word_count'], output_dict['cleaned_word_count'], output_dict['average_syllables_per_word'], output_dict['personal_pronoun_count'], output_dict['average_word_length'] = readability_analysis('37.txt')
 #print(output_dict)
 output_file_write('37.txt', output_dict)
