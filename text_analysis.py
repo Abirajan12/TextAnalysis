@@ -57,9 +57,18 @@ def read_docx(file_path):
 
 def sentiment_analysis(input_file, output_dict):
     
-    stop_file_path = r"C:\Users\navin\OneDrive\Desktop\WorkTree\sample_table\Entevyuv 11.0\StopWords\StopWords_Auditor.docx"
-    stop_words_text = read_docx(stop_file_path)
-    stop_words = set(stop_words_text.splitlines())
+    #stop_file_path = r"C:\Users\navin\OneDrive\Desktop\WorkTree\sample_table\Entevyuv 11.0\StopWords\StopWords_Auditor.docx"
+    #stop_words_text = read_docx(stop_file_path)
+    #stop_words = set(stop_words_text.splitlines())
+
+    # Collecting all the unique Stop words from all the files provided along with the probelm statement
+    stop_words_directory = r"C:\Users\navin\OneDrive\Desktop\WorkTree\sample_table\Entevyuv 11.0\StopWords"
+    stop_words = set()
+    stop_words_files = ["StopWords_Auditor.docx","StopWords_Currencies.docx","StopWords_DatesandNumbers.docx", "StopWords_Generic.docx", "StopWords_GenericLong.docx", "StopWords_Geographic.docx", "StopWords_Names.docx"]
+    for stop_words_file in stop_words_files:
+        stop_file_path = os.path.join(stop_words_directory, stop_words_file)
+        stop_words_text = read_docx(stop_file_path)
+        stop_words.update(stop_words_text.splitlines())
 
     # Load positive and negative words dictionaries
     positive_words = set()
